@@ -1,6 +1,7 @@
 from flask_restful import Resource, reqparse
 
 from app.tasks import TaskManager
+from time import sleep
 
 
 class Controller(Resource):
@@ -24,7 +25,9 @@ class Controller(Resource):
             #"quote": params["quote"]
         #}
         tm.add_task(params['task'], url=params['url'])
-        return 20            
+        print('+')
+        sleep(10)
+        return 200
 
     def put(self, id):
         tm = TaskManager()
@@ -33,7 +36,7 @@ class Controller(Resource):
         parser.add_argument("task")
         params = parser.parse_args()
         tm.add_task(params['task'], url=params['url'])
-        return 20            
+        return 200
 
     def delete(self, id):
         tm = TaskManager()
