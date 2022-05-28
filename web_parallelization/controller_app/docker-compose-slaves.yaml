@@ -1,0 +1,14 @@
+version: "0.1"
+
+services:
+        taskslave:
+                build:
+                        context: ./
+                        dockerfile: ./Dockerfile_slave
+                ports:
+                        - 5001:5001
+
+             
+
+             
+

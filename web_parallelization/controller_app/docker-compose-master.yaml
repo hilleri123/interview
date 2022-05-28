@@ -1,0 +1,14 @@
+version: "0.1"
+
+services:
+        taskmaster:
+                build:
+                        context: ./
+                        dockerfile: ./Dockerfile_master
+                ports:
+                        - 5000:5000
+
+             
+
+             
+
