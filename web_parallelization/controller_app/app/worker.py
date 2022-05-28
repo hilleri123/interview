@@ -8,7 +8,7 @@ class Worker(Resource):
     
     def get(self):
         tw = TaskWorker()
-        return 'Task not found', 404
+        return 'Task not found (Slave)', 404
 
     def post(self):
         tw = TaskWorker()
@@ -17,6 +17,6 @@ class Worker(Resource):
         parser.add_argument('task')
         parser.add_argument('code')
         params = parser.parse_args()
-        tw.manage_task(params['task'], status=params['code'])
+        tw.manage_task(params['task'], code=params['code'])
         return 200
 

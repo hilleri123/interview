@@ -10,7 +10,6 @@ class TaskManager:
             self._tasks = {url:[] for url in urls}
         if not hasattr(self, '_tasks'):
             self._tasks = {}
-        print(self._tasks)
 
     def __new__(cls, *args, **kwargs):
         if not hasattr(cls, '_instance'):
@@ -19,7 +18,7 @@ class TaskManager:
 
     def manage_task(self, task=None, url=None, code=None):
         if code is None:
-            self.add_task(task, url)
+            self.__add_task(task, url)
             return
         d = {
                 'done':self.__done_task,
@@ -28,6 +27,7 @@ class TaskManager:
                 'started':self.__started_url,
                 }
         d[code](task=task, url=url)
+        print('MASTER', self._tasks)
 
         
     def __failed_url(self, task=None, url=None):
@@ -43,8 +43,12 @@ class TaskManager:
         payload = {'task': task, 'code':'add'}  
         url_to_append = url
         if url_to_append is None:
-            for key_url, task_list in self._tasks:
-                size = min(size, len(task_list))
+            size = None
+            for key_url, task_list in self._tasks.items():
+                if size is None:
+                    size = len(task_list)
+                else:
+                    size = min(size, len(task_list))
                 if url_to_append is None or size == len(task_list):
                     url_to_append = key_url
             if not url_to_append is None:
@@ -52,17 +56,22 @@ class TaskManager:
         else:
             self._tasks[url_to_append].append(task)
         if not url_to_append is None:
-            r = requests.post(url_to_append, params=payload)
+            r = requests.post('http://'+url_to_append, params=payload)
 
 
 class TaskWorker:
-    def __init__(self, master_url='localhost:5000', slave_url):
+    def __init__(self, slave_url=None, master_url='localhost:5000'):
         if not hasattr(self, '_tasks'):
             self._tasks = []
         if not hasattr(self, '_master_url'):
             self._master_url = master_url
         if not hasattr(self, '_slave_url'):
             self._slave_url = slave_url
+        if not hasattr(self, '_scheduler'):
+            self._scheduler = BackgroundScheduler()
+            self._scheduler.add_job(TaskWorker.do_something, 'interval', seconds=5, id='main')
+            self._scheduler.start()
+
 
     def __new__(cls, *args, **kwargs):
         if not hasattr(cls, '_instance'):
@@ -72,11 +81,13 @@ class TaskWorker:
     def manage_task(self, task=None, code=None):
         if code is None:
             self.__add_task(task)
+            return
         d = {
                 'add':self.__add_task,
                 'del':self.__del_task
                 }
         d[code](task=task)
+        print('SLAVE', self._tasks)
 
 
     def __del_task(self, task):
@@ -91,17 +102,24 @@ class TaskWorker:
         task = self._tasks[0]
         sleep(5)
         self._tasks.remove(task)
+        print(self._tasks)
         payload = {'task': task, 'url':self._slave_url, 'code':'done'}
-        r = requests.post(self._master_url, params=payload)
+        r = requests.post('http://'+self._master_url, params=payload)
         return True
 
+    def fail(self):
+        payload = {'url':self._slave_url, 'code':'failed'}
+        r = requests.post('http://'+self._master_url, params=payload)
 
+    def start(self):
+        payload = {'url':self._slave_url, 'code':'started'}
+        r = requests.post('http://'+self._master_url, params=payload)
 
     @classmethod
-    def do_something():
+    def do_something(cls):
         slave = TaskWorker()
         while slave.do_task():
-            print('doing something...')
+            print('Slave is doing something...')
 
 
 

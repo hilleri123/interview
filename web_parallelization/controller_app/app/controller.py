@@ -17,7 +17,7 @@ class Controller(Resource):
         parser.add_argument('task')
         parser.add_argument('code')
         params = parser.parse_args()
-        tm.manage_task(params['task'], url=params['url'], status=params['code'])
+        tm.manage_task(params['task'], url=params['url'], code=params['code'])
         return 200
 
     #def put(self):
