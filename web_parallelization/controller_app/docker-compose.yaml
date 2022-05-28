@@ -1,0 +1,10 @@
+version: "0.1"
+
+services:
+        taskmanager:
+                build:
+                        context: ./
+                ports:
+                        - 5000:5000
+             
+
